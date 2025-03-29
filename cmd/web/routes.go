@@ -54,16 +54,6 @@ func (app *application) routes() http.Handler {
 	mux.Get("/api/messages/:id", http.HandlerFunc(app.messageHandler.GetByID))
 	mux.Del("/api/messages/:id", http.HandlerFunc(app.messageHandler.Delete))
 
-	// NOTIFY TOKEN
-	mux.Post("/api/notify-tokens", http.HandlerFunc(app.notifyTokenHandler.Create))
-	mux.Get("/api/notify-tokens", http.HandlerFunc(app.notifyTokenHandler.GetAll))
-	mux.Del("/api/notify-tokens/:id", http.HandlerFunc(app.notifyTokenHandler.Delete))
-
-	// NOTIFY HISTORY
-	mux.Post("/api/notify-history", http.HandlerFunc(app.notifyHistoryHandler.Create))
-	mux.Get("/api/notify-history", http.HandlerFunc(app.notifyHistoryHandler.GetAll))
-	mux.Get("/api/notify-history/:id", http.HandlerFunc(app.notifyHistoryHandler.GetByID))
-
 	// POLICE
 	mux.Post("/api/police-department", http.HandlerFunc(app.policeHandler.Create))
 	mux.Get("/api/police-department", http.HandlerFunc(app.policeHandler.GetAll))
