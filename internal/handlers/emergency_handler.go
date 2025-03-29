@@ -10,7 +10,8 @@ import (
 )
 
 type EmergencyHandler struct {
-	Service *services.EmergencyService
+	Service       *services.EmergencyService
+	PoliceService *services.PoliceDepartmentService
 }
 
 func (h *EmergencyHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -19,13 +20,28 @@ func (h *EmergencyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+
 	created, err := h.Service.Create(r.Context(), obj)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(created)
+
+	police, err := h.PoliceService.FindNearestPolice(obj.Latitude, obj.Longitude)
+	if err != nil {
+		http.Error(w, "Failed to find nearest police", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"emergency":      created,
+		"police_name":    police.Name,
+		"police_phone":   police.PhoneNumber,
+		"police_address": police.Address,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *EmergencyHandler) GetAll(w http.ResponseWriter, r *http.Request) {
