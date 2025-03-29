@@ -18,6 +18,7 @@ type application struct {
 	incidentHandler      *handlers.IncidentHandler
 	educationHandler     *handlers.EducationHandler
 	emergencyHandler     *handlers.EmergencyHandler
+	fcmHandler           *handlers.FCMHandler
 	newsHandler          *handlers.NewsHandler
 	messageHandler       *handlers.MessageHandler
 	notifyTokenHandler   *handlers.NotifyTokenHandler
