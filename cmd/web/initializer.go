@@ -4,8 +4,11 @@ import (
 	"JedelKomek/internal/handlers"
 	"JedelKomek/internal/repositories"
 	"JedelKomek/internal/services"
+	"context"
 	"database/sql"
+	firebase "firebase.google.com/go"
 	"fmt"
+	"google.golang.org/api/option"
 	"log"
 	"net/http"
 )
@@ -25,6 +28,22 @@ type application struct {
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
+
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("/root/go/src/tender/cmd/tender/serviceAccountKey.json")
+
+	firebaseApp, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: "jedel-komek"}, sa)
+	if err != nil {
+		errorLog.Fatalf("Ошибка в нахождении приложения: %v\n", err)
+	}
+
+	fcmClient, err := firebaseApp.Messaging(ctx)
+	if err != nil {
+		errorLog.Fatalf("Ошибка при неверном ID устройства: %v\n", err)
+	}
+
+	fcmHandler := handlers.NewFCMHandler(fcmClient, db)
+
 	userRepo := &repositories.UserRepository{Db: db}
 	userService := &services.UserService{Repo: userRepo}
 	userHandler := &handlers.UserHandler{Service: userService}
@@ -66,8 +85,8 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		emergencyHandler: emergencyHandler,
 		newsHandler:      newsHandler,
 		messageHandler:   messageHandler,
-
-		policeHandler: policeHandler,
+		fcmHandler:       fcmHandler,
+		policeHandler:    policeHandler,
 	}
 }
 

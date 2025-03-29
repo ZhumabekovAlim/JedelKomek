@@ -1,11 +1,23 @@
+// Для генерации: `swag init`
+// Swagger UI:    `localhost:4000/swagger/index.html`
+
+// @title JedelKomek API
+// @version 1.0
+// @description Backend для проекта "JedelKomek": работа с пользователями, инцидентами, уведомлениями и экстренными вызовами
+// @contact.name Dev Support
+// @host localhost:4000
+// @BasePath /
+
 package main
 
 import (
+	_ "JedelKomek/docs"
 	"JedelKomek/internal/config"
 	"database/sql"
 	"flag"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/cors"
+	_ "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 	"os"
