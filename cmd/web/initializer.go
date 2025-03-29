@@ -11,14 +11,21 @@ import (
 )
 
 type application struct {
-	errorLog        *log.Logger
-	infoLog         *log.Logger
-	wsManager       *WebSocketManager
-	incidentHandler *handlers.IncidentHandler
+	errorLog             *log.Logger
+	infoLog              *log.Logger
+	wsManager            *WebSocketManager
+	userHandler          *handlers.UserHandler
+	incidentHandler      *handlers.IncidentHandler
+	educationHandler     *handlers.EducationHandler
+	emergencyHandler     *handlers.EmergencyHandler
+	newsHandler          *handlers.NewsHandler
+	messageHandler       *handlers.MessageHandler
+	notifyTokenHandler   *handlers.NotifyTokenHandler
+	notifyHistoryHandler *handlers.NotifyHistoryHandler
+	policeHandler        *handlers.PoliceDepartmentHandler
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
-
 	userRepo := &repositories.UserRepository{Db: db}
 	userService := &services.UserService{Repo: userRepo}
 	userHandler := &handlers.UserHandler{Service: userService}
@@ -27,11 +34,47 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	incidentService := &services.IncidentService{Repo: incidentRepo}
 	incidentHandler := &handlers.IncidentHandler{Service: incidentService}
 
+	educationRepo := &repositories.EducationRepository{Db: db}
+	educationService := &services.EducationService{Repo: educationRepo}
+	educationHandler := &handlers.EducationHandler{Service: educationService}
+
+	emergencyRepo := &repositories.EmergencyRepository{Db: db}
+	emergencyService := &services.EmergencyService{Repo: emergencyRepo}
+	emergencyHandler := &handlers.EmergencyHandler{Service: emergencyService}
+
+	newsRepo := &repositories.NewsRepository{Db: db}
+	newsService := &services.NewsService{Repo: newsRepo}
+	newsHandler := &handlers.NewsHandler{Service: newsService}
+
+	messageRepo := &repositories.MessageRepository{Db: db}
+	messageService := &services.MessageService{Repo: messageRepo}
+	messageHandler := &handlers.MessageHandler{Service: messageService}
+
+	notifyTokenRepo := &repositories.NotifyTokenRepository{Db: db}
+	notifyTokenService := &services.NotifyTokenService{Repo: notifyTokenRepo}
+	notifyTokenHandler := &handlers.NotifyTokenHandler{Service: notifyTokenService}
+
+	notifyHistoryRepo := &repositories.NotifyHistoryRepository{Db: db}
+	notifyHistoryService := &services.NotifyHistoryService{Repo: notifyHistoryRepo}
+	notifyHistoryHandler := &handlers.NotifyHistoryHandler{Service: notifyHistoryService}
+
+	policeRepo := &repositories.PoliceDepartmentRepository{Db: db}
+	policeService := &services.PoliceDepartmentService{Repo: policeRepo}
+	policeHandler := &handlers.PoliceDepartmentHandler{Service: policeService}
+
 	return &application{
-		errorLog:        errorLog,
-		infoLog:         infoLog,
-		userHandler:     userHandler,
-		incidentHandler: incidentHandler,
+		errorLog:             errorLog,
+		infoLog:              infoLog,
+		wsManager:            NewWebSocketManager(),
+		userHandler:          userHandler,
+		incidentHandler:      incidentHandler,
+		educationHandler:     educationHandler,
+		emergencyHandler:     emergencyHandler,
+		newsHandler:          newsHandler,
+		messageHandler:       messageHandler,
+		notifyTokenHandler:   notifyTokenHandler,
+		notifyHistoryHandler: notifyHistoryHandler,
+		policeHandler:        policeHandler,
 	}
 }
 
