@@ -14,6 +14,7 @@ import (
 )
 
 type application struct {
+	db               *sql.DB
 	errorLog         *log.Logger
 	infoLog          *log.Logger
 	wsManager        *WebSocketManager
@@ -25,12 +26,13 @@ type application struct {
 	newsHandler      *handlers.NewsHandler
 	messageHandler   *handlers.MessageHandler
 	policeHandler    *handlers.PoliceDepartmentHandler
+	alertHandler     *handlers.AlertHandler
 }
 
 func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("/root/go/src/tender/cmd/tender/serviceAccountKey.json")
+	sa := option.WithCredentialsFile("C:\\Users\\alimz\\GolandProjects\\JedelKomek\\cmd\\web\\serviceAccountKey.json")
 
 	firebaseApp, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: "jedel-komek"}, sa)
 	if err != nil {
@@ -75,7 +77,12 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 	messageService := &services.MessageService{Repo: messageRepo}
 	messageHandler := &handlers.MessageHandler{Service: messageService}
 
+	alertRepo := &repositories.AlertRepository{Db: db}
+	alertService := &services.AlertService{Repo: alertRepo}
+	alertHandler := &handlers.AlertHandler{Service: alertService}
+
 	return &application{
+		db:               db,
 		errorLog:         errorLog,
 		infoLog:          infoLog,
 		wsManager:        NewWebSocketManager(),
@@ -87,6 +94,7 @@ func initializeApp(db *sql.DB, errorLog, infoLog *log.Logger) *application {
 		messageHandler:   messageHandler,
 		fcmHandler:       fcmHandler,
 		policeHandler:    policeHandler,
+		alertHandler:     alertHandler,
 	}
 }
 

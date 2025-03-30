@@ -85,10 +85,22 @@ func (app *application) routes() http.Handler {
 	mux.Post("/notify/history", http.HandlerFunc(app.fcmHandler.ShowNotifyHistory))
 	mux.Del("/notify/history/:id", http.HandlerFunc(app.fcmHandler.DeleteNotifyHistory))
 
-	// WEBSOCKET (не REST)
+	// ALERTS
+	// @Tags Alerts
+	mux.Post("/api/alerts", http.HandlerFunc(app.alertHandler.Create))
+	mux.Get("/api/alerts", http.HandlerFunc(app.alertHandler.GetAll))
+	mux.Get("/api/alerts/:id", http.HandlerFunc(app.alertHandler.GetByID))
+	mux.Put("/api/alerts", http.HandlerFunc(app.alertHandler.Update))
+	mux.Del("/api/alerts/:id", http.HandlerFunc(app.alertHandler.Delete))
+
+	// WEBSOCKET
 	// @Tags WebSocket
 	// @Description Подключение WebSocket для реального времени по пути /ws
 	mux.Get("/ws", http.HandlerFunc(app.WebSocketHandler))
+
+	// @Tags WebSocket
+	// @Description Подключение WebSocket чата с AI по пути /ws/ai
+	mux.Get("/ws/ai", http.HandlerFunc(app.WebSocketAIHandler))
 
 	return standardMiddleware.Then(mux)
 }

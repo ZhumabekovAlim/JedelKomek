@@ -95,3 +95,12 @@ CREATE TABLE notify_history
     sender   INT,
     receiver INT
 );
+
+CREATE TABLE alerts
+(
+    id          SERIAL PRIMARY KEY,
+    title       VARCHAR(255),
+    description TEXT,
+    status      INTEGER,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

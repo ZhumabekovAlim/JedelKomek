@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
 	"golang.org/x/exp/rand"
@@ -156,4 +157,94 @@ func randomString(length int) string {
 		sb.WriteByte(charset[randomIndex])
 	}
 	return sb.String()
+}
+
+func (app *application) WebSocketAIHandler(w http.ResponseWriter, r *http.Request) {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("WebSocket AI upgrade error: %v", err)
+		return
+	}
+	defer conn.Close()
+
+	for {
+		var userMsg struct {
+			UserID int    `json:"userId"`
+			Text   string `json:"text"`
+		}
+		if err := conn.ReadJSON(&userMsg); err != nil {
+			log.Printf("Error reading AI message: %v", err)
+			break
+		}
+
+		// Получаем ответ от AI
+		aiResponse, err := getAIResponse(userMsg.Text)
+		if err != nil {
+			log.Printf("Error getting AI response: %v", err)
+			break
+		}
+
+		// Готовим сообщение
+		response := Message{
+			ID:         generateMessageID(),
+			SenderID:   0, // AI
+			ReceiverID: userMsg.UserID,
+			Text:       aiResponse,
+			CreatedAt:  time.Now(),
+		}
+
+		// Отправляем клиенту
+		if err := conn.WriteJSON(response); err != nil {
+			log.Printf("Error sending AI response: %v", err)
+			break
+		}
+
+		// Сохраняем в базу
+		saveMessageToDB(app.db, response)
+	}
+}
+
+func getAIResponse(prompt string) (string, error) {
+	// Замените на свой OpenAI ключ
+	apiKey := "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"
+	url := "https://api.openai.com/v1/chat/completions"
+
+	payload := strings.NewReader(`{
+		"model": "gpt-3.5-turbo",
+		"messages": [{"role": "user", "content": "` + prompt + `"}]
+	}`)
+
+	req, err := http.NewRequest("POST", url, payload)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var res struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return "", err
+	}
+
+	if len(res.Choices) == 0 {
+		return "AI не смог ответить", nil
+	}
+	return res.Choices[0].Message.Content, nil
 }
